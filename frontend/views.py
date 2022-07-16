@@ -80,10 +80,10 @@ def home(request):
 
 def quiz_taker(request):
 	context = {}
-	return render(request, 'frontend/quiz_taker.html', context)
+	return render(request, 'frontend/quiz-taker/quiz_taker.html', context)
 
 @login_required(login_url='login')
 @admin_only
 def quiz_admin(request):
 	context = {}
-	return render(request, 'frontend/quiz_admin.html', context)
+	return render(request, 'frontend/quiz-admin/quiz_admin.html', context)
