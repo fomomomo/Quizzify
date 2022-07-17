@@ -15,8 +15,10 @@ def allowed_users(allowed_roles=[]):
 		def wrapper_func(request, *args, **kwargs):
 
 			group = None
-			if request.user.groups.exists():
-				group = request.user.groups.all()[0].name
+			if request.user.is_staff:
+				group = 'quiz_admin'
+			else:
+				group = 'quiz_taker'
 
 			if group in allowed_roles:
 				return view_func(request, *args, **kwargs)
@@ -28,11 +30,13 @@ def allowed_users(allowed_roles=[]):
 def admin_only(view_func):
 	def wrapper_function(request, *args, **kwargs):
 		group = None
-		if request.user.groups.exists():
-			group = request.user.groups.all()[0].name
+		if request.user.is_staff:
+			group = 'quiz_admin'
+		else:
+			group = 'quiz_taker'
 			
 		if group == 'quiz_taker':
-			return redirect('quiz-taker')
+			return redirect('index')
 
 		if group == 'quiz_admin':
 			return view_func(request, *args, **kwargs)
