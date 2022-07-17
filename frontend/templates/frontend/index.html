@@ -2,7 +2,7 @@
 {% block title %} Quiz {% endblock %}
 {% block css %}
 <style>
-  .attempt {
+  .attempt,.get-code,.view-results,.enter-code {
     --gradient: linear-gradient(to left top, #c724dd 10%, #aaaaaa 90%) !important;
   }
 
@@ -101,40 +101,68 @@
 <!-- cards -->
 <div class="container">
   <div class="container mx-auto mt-2">
-    <div class="row">
-      <div class="card code">
-        <form action="">
-          <p class="card-text">Have a code? Enter to join the Quiz.</p>
-            <br>
-            <form action="">
-              <input type="text">
-              <button data-bs-target="#exampleModal" data-bs-toggle="modal" data-time="{{i.time}}"
-              data-questions="{{i.number_of_questions}}" data-name="{{i.name}}" data-id="{{i.id}}" id="btn"
-              style="justify-content: center;" class="attempt btn mr-2 modal-button"><i class="fas fa-link"></i>Attempt
-              Quiz</button>
-            </form>
-            
-        </form>
-      </div>
+    {% if user.is_staff %}
+    <div class="row card code">
+      <p>These are the quizzes created by you:</p>
     </div>
-    <div class="row">
-
-      {% for i in quiz %}
-      <div class="col-md-4">
-        <div class="card" style="width: 21rem;">
-          <div class="card-body">
-            <h5 class="card-title" style="text-align: center;">{{i.name}}</h5>
-            <br>
-            <p class="card-text">{{i.desc}}</p>
-            <br>
-            <button data-bs-target="#exampleModal" data-bs-toggle="modal" data-time="{{i.time}}"
-              data-questions="{{i.number_of_questions}}" data-name="{{i.name}}" data-id="{{i.id}}" id="btn"
-              style="justify-content: center;" class="attempt btn mr-2 modal-button"><i class="fas fa-link"></i>Attempt
-              Quiz</button>
-          </div>
+    {% else %}
+      <div class="row">
+        <div class="card code">
+          <form action="">
+            <p class="card-text">Have a code? Enter to join the Quiz.</p>
+              <br>
+              <form method="POST" action="">
+                
+                <input type="text" name="code-entered" placeholder="Code">
+                <button type="submit" id="btn"
+                style="justify-content: center;" class="enter-code btn mr-2 "><i class="fas fa-link"></i>Attempt
+                Quiz</button>
+              </form>
+              
+          </form>
         </div>
       </div>
-      {% endfor %}
+    {% endif %}
+    
+    <div class="row">
+
+      {% if user.is_staff %} 
+        {% for i in quiz %}
+          {% if i.admin_id == user.id %}
+          <div class="col-md-4">
+            <div class="card" style="width: 21rem;">
+              <div class="card-body">
+                <h5 class="card-title" style="text-align: center;">{{i.name}}</h5>
+                <br>
+                <p class="card-text">{{i.desc}}</p>
+                <br>
+                <button  data-id="{{i.id}} "onclick="alert('Share this code with your fellow quiz takers: {{i.get_code}}')" id="btn"
+                  style="justify-content: center;" class="get-code btn mr-2 "><i class="fas fa-link"></i>Get Code</button>
+                <button onclick="window.location.href = window.location.href+'results/'+{{i.id}} " id="btn"
+                style="justify-content: center;" class="view-results btn mr-2 "><i class="fas fa-link"></i>View Results</button>
+              </div>
+            </div>
+          </div>
+          {% endif%}
+        {% endfor %}
+      {% else %}
+        {% for i in quiz %}
+        <div class="col-md-4">
+          <div class="card" style="width: 21rem;">
+            <div class="card-body">
+              <h5 class="card-title" style="text-align: center;">{{i.name}}</h5>
+              <br>
+              <p class="card-text">{{i.desc}}</p>
+              <br>
+              <button data-bs-target="#exampleModal" data-bs-toggle="modal" data-time="{{i.time}}"
+                data-questions="{{i.number_of_questions}}" data-name="{{i.name}}" data-id="{{i.id}}" id="btn"
+                style="justify-content: center;" class="attempt btn mr-2 modal-button"><i class="fas fa-link"></i>Attempt
+                Quiz</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
 </div>
@@ -147,7 +175,20 @@
   const modaltitle = document.getElementById('modal-title')
   const startQuiz = document.getElementById('start-quiz')
 
+  const getCodeButton = document.getElementsByClassName('get-code')
+
+
+  var getResults = [...document.getElementsByClassName('view-results')]
+
+
   const url = window.location.href
+
+  document.getElementsByClassName("enter-code")[0].onclick = function () {
+        window.location.href = 'www.youtube.com'
+    };
+
+  
+
 
   modalBtns.forEach(modalBtn => modalBtn.addEventListener('click', () => {
     const id = modalBtn.getAttribute('data-id')
@@ -167,5 +208,7 @@
       window.location.href = url + id
     });
   }));
+
+
 </script>
 {% endblock %}

@@ -17,11 +17,14 @@ from .models import *
 from .forms import CreateUserForm
 from .decorators import unauthenticated_user, allowed_users, admin_only
 
+import secrets
+
 
 def index(request):
+    
     quiz = Quiz.objects.all()
-    para = {'quiz' : quiz}
-    return render(request, "frontend/index.html", para)
+    context = {'quiz' : quiz, 'user_type': '(Quiz Admin)' if request.user.is_staff else '(User)'}
+    return render(request, "frontend/index.html", context=context)
 
 
 @unauthenticated_user
@@ -68,42 +71,16 @@ def logoutUser(request):
 	logout(request)
 	return redirect('login')
 
-@login_required(login_url='login')
-@admin_only
-def home(request):
-	# orders = Order.objects.all()
-	# customers = Customer.objects.all()
-
-	# total_customers = customers.count()
-
-	# total_orders = orders.count()
-	# delivered = orders.filter(status='Delivered').count()
-	# pending = orders.filter(status='Pending').count()
-
-	context = {'orders':{}, 'customers':{},
-	'total_orders':0,'delivered':0,
-	'pending':0 }
-
-	return render(request, 'frontend/add_quiz.html', context)
-
-def quiz_taker(request):
-	context = {}
-	return render(request, 'frontend/results.html', context)
-
-@login_required(login_url='login')
-@admin_only
-def quiz_admin(request):
-	context = {}
-	return render(request, 'frontend/quiz-admin/quiz_admin.html', context)
 
 def add_quiz(request):
     if request.method=="POST":
         form = QuizForm(data=request.POST)
         if form.is_valid():
             quiz = form.save(commit=False)
+            quiz.code = secrets.token_urlsafe(8)
             quiz.save()
             obj = form.instance
-            return render(request, "frontend/add_quiz.html", {'obj':obj})
+            return redirect('index')
     else:
         form=QuizForm()
     return render(request, "frontend/add_quiz.html", {'form':form})
@@ -141,11 +118,19 @@ def add_options(request, myid):
         formset=QuestionFormSet(instance=question)
     return render(request, "frontend/add_options.html", {'formset':formset, 'question':question})
     
-@login_required(login_url='login')
-@admin_only
-def results(request):
-    marks = Marks_Of_User.objects.all()
-    return render(request, "frontend/results.html", {'marks':marks})
+
+def results(request, myid):
+    marks_all = Marks_Of_User.objects.all()
+    context = []
+    
+    for marks in marks_all:
+        mark = {'quiz': {}, 'user': '', 'score': 0}
+        if(marks.quiz.id==myid):
+            mark['quiz'] = marks.quiz
+            mark['user'] = marks.user
+            mark['score'] = marks.score
+            context.append(mark)
+    return render(request, "frontend/results.html", {'marks':context})
 
 def delete_result(request, myid):
     marks = Marks_Of_User.objects.get(id=myid)
